@@ -63,6 +63,9 @@ configure()
    local_path="${STORAGE_LOCAL:-"/home/$login/storage"}"
   remote_path="${STORAGE_REMOTE:-"/home/$login/storage"}"
 
+      sshfs_options="$STORAGE_SSHFS_OPTIONS"
+  gocryptfs_options="$STORAGE_GOCRYPTFS_OPTIONS"
+
   # Try to override default parameters by passed by command line ones
   while [ $# -gt 0 ]
   do
@@ -237,23 +240,23 @@ mount()
   cleanup
 
   # Create directory for encrypted storage
-  execute_quiet 'mkdir -p $local_encrypted'                         \
-                "Failed to create directory"                        \
+  execute_quiet 'mkdir -p $local_encrypted'                                 \
+                "Failed to create directory"                                \
                 "cleanup" || exit 1
 
   # Mount encrypted storage from remote host using $login@$host:$remote_path
-  execute 'sshfs $login@$host:$remote_path $local_encrypted'        \
-          "Failed to mount remote"                                  \
+  execute 'sshfs $login@$host:$remote_path $local_encrypted $sshfs_options' \
+          "Failed to mount remote"                                          \
           "cleanup" || exit 1
 
   # Create directory for decrypted storage
-  execute_quiet 'mkdir -p $local_decrypted'                         \
-                "Failed to create directory"                        \
+  execute_quiet 'mkdir -p $local_decrypted'                                 \
+                "Failed to create directory"                                \
                 "cleanup" || exit 1
 
-  execute 'gocryptfs $local_encrypted $local_decrypted'             \
-                     "Failed to decrypt"                            \
-                     "cleanup" || exit 1
+  execute 'gocryptfs $gocryptfs_options $local_encrypted $local_decrypted'  \
+          "Failed to decrypt"                                               \
+          "cleanup" || exit 1
   
   echo_inf "\e[32mSUCCESS\e[0m"
 }
